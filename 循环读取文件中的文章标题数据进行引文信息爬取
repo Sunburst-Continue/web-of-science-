@@ -1,0 +1,62 @@
+#注意一点：web of science每搜索200条就限制了，必须要把搜索过的200条删除掉在进行输入搜索才可以
+from selenium import webdriver
+import time
+
+import pandas as pd
+
+
+
+#设置一个变量可以输出文件中哪些文件在网站中没有被搜索到，t可以记录这个文章在文件中的序号
+t=0
+#循环读取文件
+filepath =open('C:/Desktop/papers.csv', "r", encoding="ANSI")   #这里填入你要搜索的所有的文章的，encoding设为自己文件的
+df = pd.read_csv(filepath)
+
+for i in range(0, len(df)):  #这里的范围可以自己随意设置自己需要的哪些文章范围
+    driver = webdriver.Chrome(executable_path=r"D:\谷歌下载文件\chromedriver.exe")
+
+    driver.get("填入web of science的网址")
+    time.sleep(2)
+
+    # driver.refresh()
+    ele = driver.find_element_by_xpath('//*[@id="value(input1)"]')
+    ele.clear()
+#找按钮点击
+
+    driver.find_element_by_xpath('//*[@id="value(input1)"]').send_keys(df.iloc[i, 0])
+    driver.find_element_by_xpath('//*[@id="searchCell3"]/span[1]/button').click()
+    time.sleep(2)
+    #判定这个文章是否在web of science能够找到，也就是点击搜索是否能够进入下一页
+    def isElementExist(element):
+        flag=True
+
+        try:
+            driver.find_element_by_xpath(element)
+            return flag
+        except:
+            flag=False
+            return flag
+    classflag=isElementExist('//*[@id="isickref_1"]')
+    #如果能找到相关被引文章则模拟鼠标点击进行爬取被引文章的数据
+    if classflag:
+        driver.find_element_by_xpath('//*[@id="isickref_1"]').click()
+        time.sleep(1)
+        driver.find_element_by_xpath('//*[@id="searchButtontop"]/button').click()
+
+        time.sleep(3)
+        driver.find_element_by_xpath('//*[@id="view_citation_report_image_placeholder"]/div/div/a/span').click()
+
+        driver.find_element_by_xpath('//*[@id="select2-cr_saveToMenuTop-container"]').click()
+        driver.find_element_by_xpath('//*[@id="numberOfRecordsRange"]').click()
+
+        driver.find_element_by_xpath('//*[@id="exportButton"]').click()
+        #这里下载被引文章的xls文件时尽量将time.sleep设置的大一点，防止未下载完页面就关闭了会导致下载未完成
+        time.sleep(6)
+        driver.close()
+    #如果没有找到相关被引文章的数据，则返回标号与文章标题
+    else:
+
+        print(i,df.iloc[i, 0])
+        driver.close()
+        t=t+1
+print(t)
