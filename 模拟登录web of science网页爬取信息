@@ -1,0 +1,53 @@
+1.首先根据自己的chrome的版本下载对应的chrome.exe的版本
+   https://chromedriver.chromium.org/downloads
+   
+2.需要安装相应的库
+pip install selenium
+   
+3.利用自己的学校的ip地址登录web of science的网址
+#可利用cookie进行模拟登录
+
+from selenium import webdriver
+import time
+import json
+driver = webdriver.Chrome(executable_path=r"D:\google下载\chromedriver.exe")  #导入你下载chromedriver.exe的文件目录
+driver.get("网址")
+time.sleep(3)  
+#如果有登录名和密码可以这样登录
+driver.find_element_by_name('username').send_keys("账号") #找到网页中需要输入账号的文本框的name，一般为usename
+driver.find_element_by_name('password').send_keys("密码")  #找到网页中需要输入密码的文本框的name，一般为password
+driver.find_element_by_xpath('网页中登录的xpath').click()   #模拟登录
+#利用cookies模拟登录
+#class="el-button-login
+cookies = driver.get_cookies()
+print (type(cookies))
+# print ("".join(cookies))
+f1 = open('cookie.txt', 'w')
+f1.write(json.dumps(cookies))
+f1.close
+f1 = open('cookie.txt')
+cookie = f1.read()
+cookie =json.loads(cookie)
+for c in cookie:
+    driver.add_cookie(c)
+#登陆完成
+#刷新一下页面
+driver.refresh()
+
+#进入需要输入被引文章的网页
+ele = driver.find_element_by_xpath('//*[@id="value(input1)"]')
+ele.clear()  #清空搜索文本框的内容，web of science网站的搜索框中一般会保存上一次搜索过的东西所以需要清除掉上一次搜索的呢日内容
+keyword = "输入搜索的文章名称"
+#模拟鼠标步骤点击下载被引文章的xls文件
+driver.find_element_by_xpath('//*[@id="value(input1)"]').send_keys(keyword)
+driver.find_element_by_xpath('//*[@id="searchCell3"]/span[1]/button').click()
+driver.find_element_by_xpath('//*[@id="isickref_1"]').click()
+driver.find_element_by_xpath('//*[@id="searchButtontop"]/button').click()
+driver.find_element_by_xpath('//*[@id="view_citation_report_image_placeholder"]/div/div/a/span').click()
+#//*[@id="view_citation_report_image_placeholder"]/div/div/a/span
+driver.find_element_by_xpath('//*[@id="select2-cr_saveToMenuTop-container"]').click()
+driver.find_element_by_xpath('//*[@id="numberOfRecordsAllOnPage"]').click()
+driver.find_element_by_xpath('//*[@id="exportButton"]').click()
+
+
+
